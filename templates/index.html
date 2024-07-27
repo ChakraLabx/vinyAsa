@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/main.css')}}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Document Layout Analysis</title>
+</head>
+<body class="d-flex flex-column vh-100">
+    <header class="navbar navbar-light bg-light border-bottom">
+      <div class="container-fluid">
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <h1 class="h1">vinyAsa</h1>
+        <div class="ms-auto">
+          <button class="btn btn-secondary me-2" id="download-results">Download results</button>
+          <button class="btn btn-secondary" id="reset-demo">Reset demo</button>
+        </div>
+      </div>
+    </header>
+    
+    <main class="flex-grow-1 d-flex">
+        <div id="left-panel" class="flex-grow-1 p-3 border-end">
+            <div id="document-name-controls">
+                <div class="h5" id="document-name"></div>
+                <div id="zoom-controls">
+                    <button id="zoom-in" title="Zoom in">+</button>
+                    <button id="zoom-out" title="Zoom out" disabled>-</button>
+                    <button id="reset-zoom" title="Reset zoom" disabled>↺</button>
+                </div>
+            </div>
+            <div id="document-container">
+                <div id="document-view"></div>
+            </div>
+            <div id="document-controls">
+                <div class="doc-left-section">
+                    <label for="sample-selector" class="form-label">Choose a sample document:</label>
+                    <select class="form-control" id="sample-selector">
+                        <option value="Receipts">Receipts</option>
+                        <option value="Form">Form</option>
+                        <option value="Security and Exchange Comission Filing">Security and Exchange Comission Filing</option>
+                        <option value="Filing">Filing</option>
+                        <option value="Vaccination Card">Vaccination Card</option>
+                    </select>
+                </div>
+                <div class="doc-right-section">
+                    <div class="upload-section">
+                        <h3>Upload document</h3>
+                        <form id="upload-form" enctype="multipart/form-data">
+                            <label for="file-upload" class="single-file-upload">
+                                Choose document
+                            </label>
+                            <input type="file" id="file-upload" name="file" accept="image/jpeg,image/png,application/pdf">
+                            <span id="file-name"></span>
+                            <p class="upload-info">Documents must be fewer than 11 pages, smaller than 5 MB, and one of the following formats: JPEG, PNG, or PDF.</p>
+                        </form>
+                    </div>
+                    <div class="bulk-upload-section">
+                        <h3>Upload bulk documents</h3>
+                        <form id="bulk-upload-form" enctype="multipart/form-data">
+                            <label for="bulk-file-upload" class="multi-file-upload">
+                                Upload Documents
+                            </label>
+                            <input type="file" id="bulk-file-upload" name="bulk-files" accept="image/jpeg,image/png,application/pdf" multiple>
+                            <span id="file-name"></span>
+                            <p class="upload-info">Up to 150 documents in a single request and download the results as a CSV.</p>
+                        </form>
+                    </div>
+                </div>                    
+            </div>
+        </div>
+        <div id="right-panel" class="flex-grow-1 p-3">
+            <ul class="nav nav-tabs mb-3">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#Raw-text">Raw text</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#Layout">Layout</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#Forms">Forms</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#Tables">Tables</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#Queries">Queries</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#Signatures">Signatures</a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div id="Raw-text" class="tab-pane active">
+                    <p>Raw text content will be displayed here.</p>
+                </div>
+                <div id="Layout" class="tab-pane">
+                    <p>Layout information will be displayed here.</p>
+                </div>
+                <div id="Forms" class="tab-pane">
+                    <p>Form information will be displayed here.</p>
+                </div>
+                <div id="Tables" class="tab-pane">
+                    <p>Table information will be displayed here.</p>
+                </div>
+                <div id="Queries" class="tab-pane">
+                    <p>Query results will be displayed here.</p>
+                </div>
+                <div id="Signatures" class="tab-pane">
+                    <p>Signature information will be displayed here.</p>
+                </div>
+            </div>
+        </div>
+        
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>
