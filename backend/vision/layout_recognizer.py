@@ -17,8 +17,8 @@ from copy import deepcopy
 import numpy as np
 from huggingface_hub import snapshot_download
 
-from file_utils import get_project_base_directory
-from recognizer import Recognizer
+from vision.file_utils import get_project_base_directory
+from vision.recognizer import Recognizer
 
 
 class LayoutRecognizer(Recognizer):

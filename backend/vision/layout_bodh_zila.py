@@ -2,28 +2,33 @@ import json
 import os
 import numpy as np
 from PIL import Image
-from seeit import draw_box
-from ocr import OCR
-from layout_recognizer import LayoutRecognizer
-from recognizer import Recognizer
-from file_utils import get_project_base_directory
-from in_out import init_in_out
+from vision.seeit import draw_box
+from vision.ocr import OCR
+from vision.layout_recognizer import LayoutRecognizer
+from vision.recognizer import Recognizer
+from vision.file_utils import get_project_base_directory
+from vision.in_out import init_in_out
 
-def layout_zila(image):
+def layout_zila(images_path, output_path):
     ocr = OCR()
-    bxs = ocr(np.array(image))
-    bxs = [(line[0], line[1][0]) for line in bxs]
-    bxs = [{
-        "text": t,
-        "bbox": [b[0][0], b[0][1], b[1][0], b[-1][1]],
-        "x0": b[0][0],
-        "x1": b[1][0],
-        "top": b[0][1],
-        "bottom": b[-1][1],
-        "type": "ocr",
-        "score": 1} for b, t in bxs if b[0][0] <= b[1][0] and b[0][1] <= b[-1][1]]
-    
-    return bxs
+    images, outputs = init_in_out(images_path, output_path)
+
+    bxs_list = []
+    for img in images:
+        bxs = ocr(np.array(img))
+        bxs = [(line[0], line[1][0]) for line in bxs]
+        bxs = [{
+            "text": t,
+            "bbox": [b[0][0], b[0][1], b[1][0], b[-1][1]],
+            "x0": b[0][0],
+            "x1": b[1][0],
+            "top": b[0][1],
+            "bottom": b[-1][1],
+            "type": "ocr",
+            "score": 1} for b, t in bxs if b[0][0] <= b[1][0] and b[0][1] <= b[-1][1]]
+        bxs_list.append(bxs)
+
+    return bxs_list
 
 def layout_bodh(layout, images_path, output_path, threshold):
     images, outputs = init_in_out(images_path, output_path)
@@ -31,25 +36,24 @@ def layout_bodh(layout, images_path, output_path, threshold):
         labels = LayoutRecognizer.labels
         detr = LayoutRecognizer("layout")
         ocr_results = []
-        # for img in images:
-        #     ocr_result = layout_zila(img)
-        #     ocr_results.append(ocr_result)
+        ocr_results = layout_zila(images_path, output_path)
         # with open('ocr_results.json', 'w') as json_file:
         #     json.dump(ocr_results, json_file)
 
         # with open('ocr_results.json', 'r') as json_file:
         #     ocr_results = json.load(json_file)
         
-        # ocr_res, page_layouts = detr(images, ocr_results, scale_factor=1, thr=float(threshold), batch_size=16)
+        # print(f"{len(images)}:{len(ocr_results)}")
+        ocr_res, page_layouts = detr(images, ocr_results, scale_factor=1, thr=float(threshold), batch_size=16)
         # with open('ocr_res.json', 'w') as json_file:
         #     json.dump(ocr_res, json_file)
-        with open('ocr_res.json', 'r') as json_file:
-            ocr_res = json.load(json_file)
+        # with open('ocr_res.json', 'r') as json_file:
+        #     ocr_res = json.load(json_file)
 
         # with open('page_layouts.json', 'w') as json_file:
         #     json.dump(page_layouts, json_file)
-        with open('page_layouts.json', 'r') as json_file:
-            page_layouts = json.load(json_file)
+        # with open('page_layouts.json', 'r') as json_file:
+        #     page_layouts = json.load(json_file)
 
         
         processed_items = {}
@@ -104,7 +108,7 @@ def layout_bodh(layout, images_path, output_path, threshold):
 
         return list(processed_items.values())
 
-filename = "/home/zok/Pictures/Screenshots/samp.png"
+# filename = "/home/zok/Pictures/Screenshots/samp.png"
 # raw_text = layout_zila(filename)
-layout_data = layout_bodh(True, filename, 'output_dir', 0.005)
-print(layout_data)
+# layout_data = layout_bodh(True, filename, 'output_dir', 0.005)
+# print(layout_data)

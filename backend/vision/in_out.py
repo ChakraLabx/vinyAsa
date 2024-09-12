@@ -16,7 +16,7 @@ import traceback
 from PIL import Image
 import pdfplumber
 import numpy as np
-from file_utils import traversal_files
+from vision.file_utils import traversal_files
 
 def init_in_out(inputs, output_dir):
     images = []

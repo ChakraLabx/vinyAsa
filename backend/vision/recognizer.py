@@ -17,9 +17,9 @@ from copy import deepcopy
 import onnxruntime as ort
 from huggingface_hub import snapshot_download
 
-from file_utils import get_project_base_directory
-from operators import *
-import seeit
+from vision.file_utils import get_project_base_directory
+from vision.operators import *
+from vision import seeit
 
 
 class Recognizer(object):

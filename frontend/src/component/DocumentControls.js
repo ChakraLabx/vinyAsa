@@ -1,4 +1,3 @@
-import axios from 'axios';
 import React from 'react';
 
 function DocumentControls({ handleFileChange, handleDocumentChange, documentName, selectedFile }) {
@@ -9,16 +8,6 @@ function DocumentControls({ handleFileChange, handleDocumentChange, documentName
     'Filing',
     'Vaccination Card'
   ];
-
-  const UploadDoc = async () => {
-     axios.post("/route",{
-      data:""
-     }).then((res) => {
-
-     }).catch((err)=> {
-      
-     })
-  }
 
   return (
     <div id="document-controls">

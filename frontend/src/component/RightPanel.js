@@ -1,13 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import TabContent from './TabContent';
 
-function RightPanel({ rawText, layoutData }) {
-  const [activeTab, setActiveTab] = useState('Raw-text');
+function RightPanel({ rawText, layoutData, activeTab, setActiveTab }) {
   const tabs = [
     'Raw-text', 'Layout', 'Forms', 'Tables', 'Queries', 'Signatures'
   ];
-  const [data,setData] = useState([])
-  
 
   return (
     <div id="right-panel" className="flex-grow-1 p-3">
@@ -25,7 +22,7 @@ function RightPanel({ rawText, layoutData }) {
         ))}
       </ul>
       <div className="tab-content">
-        <TabContent id="Raw-text" active={activeTab === 'Raw-text'} content={rawText} />
+        <TabContent id="Raw-text" active={activeTab === 'Raw-text'} content={JSON.stringify(rawText, null, 2)} />
         <TabContent id="Layout" active={activeTab === 'Layout'} content={JSON.stringify(layoutData, null, 2)} />
         {tabs.slice(2).map(tab => (
           <TabContent key={tab} id={tab} active={activeTab === tab} content={`${tab} content will be displayed here.`} />

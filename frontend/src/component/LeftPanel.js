@@ -3,7 +3,7 @@ import axios from 'axios';
 import DocumentView from './DocumentView';
 import DocumentControls from './DocumentControls';
 
-function LeftPanel({ setRawText, setLayoutData }) {
+function LeftPanel({ setRawText, setLayoutData, setActiveTab }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [documentName, setDocumentName] = useState("Receipts");
   const [fileUrl, setFileUrl] = useState('');
@@ -21,13 +21,13 @@ function LeftPanel({ setRawText, setLayoutData }) {
       // Process the file
       const formData = new FormData();
       formData.append('file', file);
-
       try {
-        const response = await axios.post('/api/upload', formData, {
+        const response = await axios.post('http://127.0.0.1:5000/api/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         setRawText(response.data.rawText);
         setLayoutData(response.data.layoutData);
+        setActiveTab('Raw-text');
       } catch (error) {
         console.error('Error processing file:', error);
       }
