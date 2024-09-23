@@ -1,10 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import TabContent from './TabContent';
 
-function RightPanel({ rawText, layoutData, activeTab, setActiveTab }) {
+function RightPanel({ activeTab, setActiveTab, processedData, currentPage }) {
+  const [currentPageData, setCurrentPageData] = useState(null);
+
   const tabs = [
     'Raw-text', 'Layout', 'Forms', 'Tables', 'Queries', 'Signatures'
   ];
+
+  useEffect(() => {
+    if (processedData[activeTab]) {
+      if (activeTab === 'Raw-text') {
+        setCurrentPageData(processedData[activeTab][currentPage] || []);
+      } else if (activeTab === 'Layout') {
+        setCurrentPageData(processedData[activeTab].filter(item => item.page_no === currentPage));
+      } else {
+        setCurrentPageData(processedData[activeTab]);
+      }
+    } else {
+      setCurrentPageData(null); 
+    }
+  }, [activeTab, processedData, currentPage]);
+
+  const getCurrentTabContent = () => {
+    if (!currentPageData) {
+      return "No data available";
+    }
+    return JSON.stringify(currentPageData, null, 2);
+  };
 
   return (
     <div id="right-panel" className="flex-grow-1 p-3">
@@ -14,7 +37,10 @@ function RightPanel({ rawText, layoutData, activeTab, setActiveTab }) {
             <a
               className={`nav-link ${activeTab === tab ? 'active' : ''}`}
               href={`#${tab}`}
-              onClick={() => setActiveTab(tab)}
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveTab(tab);
+              }}
             >
               {tab.replace('-', ' ')}
             </a>
@@ -22,11 +48,11 @@ function RightPanel({ rawText, layoutData, activeTab, setActiveTab }) {
         ))}
       </ul>
       <div className="tab-content">
-        <TabContent id="Raw-text" active={activeTab === 'Raw-text'} content={JSON.stringify(rawText, null, 2)} />
-        <TabContent id="Layout" active={activeTab === 'Layout'} content={JSON.stringify(layoutData, null, 2)} />
-        {tabs.slice(2).map(tab => (
-          <TabContent key={tab} id={tab} active={activeTab === tab} content={`${tab} content will be displayed here.`} />
-        ))}
+        <TabContent
+          id={activeTab}
+          active={true}
+          content={<pre>{getCurrentTabContent()}</pre>}
+        />
       </div>
     </div>
   );

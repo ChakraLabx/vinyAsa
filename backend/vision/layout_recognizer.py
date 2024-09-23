@@ -78,7 +78,7 @@ class LayoutRecognizer(Recognizer):
                     } for b in lts]
             lts = self.sort_Y_firstly(lts, np.mean(
                 [l["bottom"] - l["top"] for l in lts]) / 2)
-            lts = self.layouts_cleanup(bxs, lts)
+            lts = self.layouts_cleanup(bxs, lts, thr=0.7)
             page_layout.append(lts)
 
             # Tag layout type, layouts are ready
@@ -92,7 +92,7 @@ class LayoutRecognizer(Recognizer):
                         bxs.pop(i)
                         continue
 
-                    ii = self.find_overlapped_with_threashold(bxs[i], lts_, thr=0.4)
+                    ii = self.find_overlapped_with_threshold(bxs[i], lts_, thr=0.4)
                     if ii is None:  
                         if layout_count < len(lts_):
                             lts_[layout_count]["visited"] = False

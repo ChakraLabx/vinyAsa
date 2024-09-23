@@ -59,7 +59,7 @@ def draw_box(im, result, labels, threshold):
     result = [r for r in result if "score" not in r or r["score"] >= threshold]
 
     for item in result:
-        color = tuple(clsid2color[item['layout_type'].lower()])
+        color = tuple(clsid2color[item['type'].lower()])
         xmin, ymin, xmax, ymax = item['x0'], item['top'], item['x1'], item['bottom']
         draw.line(
             [(xmin, ymin), (xmin, ymax), (xmax, ymax), (xmax, ymin),
@@ -68,7 +68,7 @@ def draw_box(im, result, labels, threshold):
             fill=color)
 
         # draw label
-        text = "{} {:.4f}".format(item['layout_type'], item['score'])
+        text = "{} {:.4f}".format(item['type'], item['score'])
         tw, th = imagedraw_textsize_c(draw, text)
         draw.rectangle(
             [(xmin + 1, ymin - th), (xmin + tw + 1, ymin)], fill=color)

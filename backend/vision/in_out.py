@@ -22,7 +22,7 @@ def init_in_out(inputs, output_dir):
     images = []
     outputs = []
 
-    if not os.path.exists(output_dir):
+    if output_dir and not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
     def pdf_pages(fnm, zoomin=3):
@@ -30,8 +30,9 @@ def init_in_out(inputs, output_dir):
         pdf = pdfplumber.open(fnm)
         images = [p.to_image(resolution=72 * zoomin).annotated for i, p in enumerate(pdf.pages)]
 
-        for i, page in enumerate(images, 1):
-            outputs.append(os.path.split(fnm)[-1] + f"_{i}.jpg")
+        if output_dir:
+            for i, page in enumerate(images, 1):
+                outputs.append(os.path.split(fnm)[-1] + f"_{i}.jpg")
 
     def images_and_outputs(fnm):
         nonlocal outputs, images
@@ -43,7 +44,8 @@ def init_in_out(inputs, output_dir):
             if img.mode == 'RGBA':
                 img = img.convert('RGB')  
             images.append(img)
-            outputs.append(os.path.split(fnm)[-1])
+            if output_dir:
+                outputs.append(os.path.split(fnm)[-1])
         except Exception as e:
             traceback.print_exc()
 
@@ -53,7 +55,8 @@ def init_in_out(inputs, output_dir):
     else:
         images_and_outputs(inputs)
 
-    for i in range(len(outputs)): 
-        outputs[i] = os.path.join(output_dir, outputs[i])
+    if output_dir:
+        for i in range(len(outputs)): 
+            outputs[i] = os.path.join(output_dir, outputs[i])
 
     return images, outputs

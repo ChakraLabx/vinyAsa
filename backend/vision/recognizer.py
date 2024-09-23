@@ -163,11 +163,11 @@ class Recognizer(object):
         i = 0
         while i + 1 < len(layouts):
             j = i + 1
-            while j < min(i + far, len(layouts)) \
+            while j < max(i + far, len(layouts)) \
                     and (layouts[i].get("type", "") != layouts[j].get("type", "")
                          or notOverlapped(layouts[i], layouts[j])):
                 j += 1
-            if j >= min(i + far, len(layouts)):
+            if j >= max(i + far, len(layouts)):
                 i += 1
                 continue
             if Recognizer.overlapped_area(layouts[i], layouts[j]) < thr \
@@ -175,12 +175,12 @@ class Recognizer(object):
                 i += 1
                 continue
 
-            if layouts[i].get("score") and layouts[j].get("score"):
-                if layouts[i]["score"] > layouts[j]["score"]:
-                    layouts.pop(j)
-                else:
-                    layouts.pop(i)
-                continue
+            # if layouts[i].get("score") and layouts[j].get("score"):
+            #     if layouts[i]["score"] > layouts[j]["score"]:
+            #         layouts.pop(j)
+            #     else:
+            #         layouts.pop(i)
+            #     continue
 
             area_i, area_i_1 = 0, 0
             for b in boxes:
@@ -189,7 +189,7 @@ class Recognizer(object):
                 if not notOverlapped(b, layouts[j]):
                     area_i_1 += Recognizer.overlapped_area(b, layouts[j], False)
 
-            if area_i > area_i_1:
+            if area_i > area_i_1 or layouts[i]["score"] > layouts[j]["score"]:
                 layouts.pop(j)
             else:
                 layouts.pop(i)
@@ -285,7 +285,7 @@ class Recognizer(object):
         return min_i
 
     @staticmethod
-    def find_overlapped_with_threashold(box, boxes, thr=0.3):
+    def find_overlapped_with_threshold(box, boxes, thr=0.3):
         if not boxes:
             return
         max_overlapped_i, max_overlapped, _max_overlapped = None, thr, 0

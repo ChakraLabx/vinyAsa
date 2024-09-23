@@ -492,6 +492,10 @@ class OCR(object):
                 self.text_detector = TextDetector(model_dir)
                 self.text_recognizer = TextRecognizer(model_dir)
 
+        else:
+            self.text_detector = TextDetector(model_dir)
+            self.text_recognizer = TextRecognizer(model_dir)
+            
         self.drop_score = 0.5
         self.crop_image_res_index = 0
 

@@ -1,14 +1,6 @@
 import React from 'react';
 
-function DocumentControls({ handleFileChange, handleDocumentChange, documentName, selectedFile }) {
-  const sampleDocuments = [
-    'Receipts',
-    'Form',
-    'Security and Exchange Commission Filing',
-    'Filing',
-    'Vaccination Card'
-  ];
-
+function DocumentControls({ handleFileChange, handleDocumentChange, documentName, selectedFile, sampleDocuments }) {
   return (
     <div id="document-controls">
       <div className="doc-left-section">
