@@ -36,7 +36,6 @@ class layout_zila(OCR):
             bxs = [(line[0], line[1][0]) for line in bxs]
             bxs = [{
                 "text": t,
-                "bbox": [b[0][0], b[0][1], b[1][0], b[-1][1]],
                 "x0": b[0][0],
                 "x1": b[1][0],
                 "top": b[0][1],

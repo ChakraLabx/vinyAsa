@@ -604,6 +604,7 @@ class OCR(object):
             return None, None, time_dict
         else:
             print("dt_boxes num : {}, elapsed : {}".format(len(dt_boxes), elapse))
+            print("hello")
             # cron_logger.debug("dt_boxes num : {}, elapsed : {}".format(
             #     len(dt_boxes), elapse))
         img_crop_list = []

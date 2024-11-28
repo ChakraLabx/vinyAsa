@@ -192,6 +192,68 @@ h1 {
   border: 1px solid #ccc;
 }
 
+.togglebutton {
+  position: absolute;
+  top: 80px; 
+  right: 10px;
+  z-index: 1000;
+}
+
+.button-container {
+  display: flex; 
+  gap: 5px; 
+  flex-wrap: wrap; 
+  border-collapse: separate;
+  border-spacing: 0;
+  caption-side: top;
+  cursor: auto;
+  direction: inherit;
+  empty-cells: show;
+  /* font-family: serif; */
+  /* font-size: medium; */
+  font-style: normal;
+  font-variant: normal;
+  /* font-stretch: normal; */
+  line-height: normal;
+  hyphens: none;
+  letter-spacing: normal;
+  list-style: disc outside none;
+  tab-size: 8;
+  text-align: start;
+  text-indent: 0;
+  text-shadow: none;
+  text-transform: none;
+  visibility: visible;
+  white-space: normal;
+  word-spacing: normal;
+  font-size: 14px;
+  line-height: 22px;
+  color: #16191f;
+  font-weight: 400;
+  font-family: var(--font-family-base-4om3hr, "Amazon Ember", "Helvetica Neue", Roboto, Arial, sans-serif);
+  word-wrap: break-word;
+}
+
+.btn.btn-light {
+  background-color: #eaeded;
+}
+.btn.btn-light:hover {
+  background-color: #f1faff;
+}
+button.selected {
+  animation: 0.155s;
+  padding: 7px;
+  display: inline-block;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 2px;
+  margin: 4px !important;
+  border: 1px solid #0073bb;
+  background-color: #f1faff;
+  transition: 0.155s;
+}
+
+
 @media (max-width: 768px) {
   main {
     flex-direction: column;

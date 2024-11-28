@@ -14,7 +14,8 @@ const DocumentView = ({
   processing,
   currentPage,
   onPageChange,
-  newFileUploaded
+  newFileUploaded,
+  highlightedText
 }) => {
   const [scale, setScale] = useState(1);
   const [numPages, setNumPages] = useState(null);
@@ -89,11 +90,57 @@ const DocumentView = ({
 
     if (labeledImages && labeledImages.length > 0) {
       return (
-        <img 
-          src={`data:image/jpeg;base64,${labeledImages[pageNumber - 1]}`} 
-          alt={`Labeled ${pageNumber}`} 
-          style={{maxWidth: '100%', height: 'auto'}} 
+        <div style={{ position: 'relative' }}>
+        <img
+          src={`data:image/jpeg;base64,${labeledImages[pageNumber - 1]}`}
+          alt={`Labeled ${pageNumber}`}
+          style={{maxWidth: '100%', height: '100%'}}
+          ref={(img) => {
+            if (img) {
+              img.onload = () => {
+                const naturalWidth = img.naturalWidth;
+                const naturalHeight = img.naturalHeight;
+
+                // Get the displayed image dimensions
+                const { width: displayedWidth, height: displayedHeight } = img.getBoundingClientRect();
+
+                // Calculate scaling factors
+                const widthScaleFactor = displayedWidth / naturalWidth;
+                const heightScaleFactor = displayedHeight / naturalHeight;
+
+                if (highlightedText) {
+                  const highlightBox = document.createElement('div');
+                  highlightBox.style.position = 'absolute';
+                  highlightBox.style.border = '2px solid red';
+
+                  // Calculate position and size using natural image coordinates and display scaling
+                  highlightBox.style.left = `${(highlightedText.x0 * widthScaleFactor / displayedWidth) * 100}%`;
+                  highlightBox.style.top = `${(highlightedText.top * heightScaleFactor / displayedHeight) * 100}%`;
+                  highlightBox.style.width = `${((highlightedText.x1 - highlightedText.x0) * widthScaleFactor / displayedWidth) * 100}%`;
+                  highlightBox.style.height = `${((highlightedText.bottom - highlightedText.top) * heightScaleFactor / displayedHeight) * 100}%`;
+
+                  highlightBox.style.pointerEvents = 'none';
+                  highlightBox.style.zIndex = '10';
+                  highlightBox.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+
+                  const existingHighlight = img.parentNode.querySelector('.text-highlight');
+                  if (existingHighlight) {
+                    existingHighlight.remove();
+                  }
+
+                  highlightBox.classList.add('text-highlight');
+                  img.parentNode.appendChild(highlightBox);
+                }
+              };
+
+              // Trigger onload if image is already loaded
+              if (img.complete) {
+                img.onload();
+              }
+            }
+          }}
         />
+   </div>
       );
     }
 

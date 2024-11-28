@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import DocumentView from './DocumentView';
 import DocumentControls from './DocumentControls';
 
-function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChange, currentPage, onPageChange }) {
+function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChange, currentPage, onPageChange, highlightedText }) {
   const [documentName, setDocumentName] = useState("Receipts");
   const [fileUrl, setFileUrl] = useState('');
   const [fileType, setFileType] = useState('pdf');
@@ -62,6 +62,7 @@ function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChang
         currentPage={currentPage}
         onPageChange={onPageChange}
         newFileUploaded={newFileUploaded}
+        highlightedText={highlightedText}
       />
       <DocumentControls
         documentName={documentName}

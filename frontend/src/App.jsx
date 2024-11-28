@@ -27,6 +27,7 @@ function App() {
   });
   const [processing, setProcessing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [highlightedText, setHighlightedText] = useState(null);
 
   const resetAllData = () => {
     setProcessedData({
@@ -99,6 +100,10 @@ function App() {
     setCurrentPage(newPage);
   };
 
+  const handleTextHighlight = (textData) => {
+    setHighlightedText(textData);
+  };
+
   return (
     <div className="d-flex flex-column vh-100">
       <Header />
@@ -112,12 +117,14 @@ function App() {
           handleFileChange={handleFileChange}
           currentPage={currentPage}
           onPageChange={handlePageChange}
+          highlightedText={highlightedText}
         />
         <RightPanel
           activeTab={activeTab}
           setActiveTab={handleTabChange}
           processedData={processedData}
           currentPage={currentPage}
+          onTextHighlight={handleTextHighlight}
         />
       </main>
     </div>
