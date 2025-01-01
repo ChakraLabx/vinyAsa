@@ -1,8 +1,24 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import DocumentView from './DocumentView';
 import DocumentControls from './DocumentControls';
+import Box from '@mui/material/Box'; // Assuming you're using Material-UI
 
-function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChange, currentPage, onPageChange, highlightedText }) {
+function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChange, currentPage, onPageChange, highlightedText, activeTab }) {
+  // Defining sx styles inline
+  const sx = {
+    leftPanel: {
+      flexGrow: 1,
+      padding: '1rem',
+      borderRight: '1px solid #dee2e6',
+      minWidth: '50%', 
+      overflowY: 'auto', 
+      height: 'calc(100vh - 80px)',
+      '@media (max-width: 768px)': {
+        display: 'none',
+      },
+    }
+  };
+
   const [documentName, setDocumentName] = useState("Receipts");
   const [fileUrl, setFileUrl] = useState('');
   const [fileType, setFileType] = useState('pdf');
@@ -51,7 +67,10 @@ function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChang
   }, [newFileUploaded]);
 
   return (
-    <div id="left-panel" className="flex-grow-1 p-3 border-end">
+    <Box 
+      id="left-panel" 
+      sx={sx.leftPanel}
+    >
       <DocumentView
         documentName={documentName}
         fileUrl={fileUrl || sampleDocuments[documentName].url}
@@ -63,6 +82,7 @@ function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChang
         onPageChange={onPageChange}
         newFileUploaded={newFileUploaded}
         highlightedText={highlightedText}
+        activeTab={activeTab}
       />
       <DocumentControls
         documentName={documentName}
@@ -70,7 +90,7 @@ function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChang
         handleFileChange={handleFileInputChange}
         sampleDocuments={Object.keys(sampleDocuments)}
       />
-    </div>
+    </Box>
   );
 }
 

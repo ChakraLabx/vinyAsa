@@ -9,7 +9,7 @@ function Header() {
         </button>
         <div className="d-flex align-items-center">
           <img 
-            src="Untitled2.jpeg" 
+            src="favicon_io/apple-touch-icon.png" 
             alt="Logo" 
             style={{ height: '40px', marginRight: '10px' }}  
           />

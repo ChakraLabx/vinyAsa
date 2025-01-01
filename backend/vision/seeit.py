@@ -15,7 +15,6 @@ import os
 import PIL
 from PIL import ImageDraw
 
-
 def save_results(image_list, results, labels, output_dir='output/', threshold=0.5):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -25,7 +24,6 @@ def save_results(image_list, results, labels, output_dir='output/', threshold=0.
         out_path = os.path.join(output_dir, f"{idx}.jpg")
         im.save(out_path, quality=95)
         print("save result to: " + out_path)
-
 
 def draw_box_recog(im, result, lables, threshold=0.5):
     draw_thickness = min(im.size) // 320
@@ -76,27 +74,36 @@ def draw_box(im, result, labels, threshold):
 
     return im
 
-
 def get_color_map_list(num_classes):
     """
     Args:
-        num_classes (int): number of class
+        num_classes (int): number of classes
     Returns:
         color_map (list): RGB color list
     """
-    color_map = num_classes * [0, 0, 0]
-    for i in range(0, num_classes):
-        j = 0
-        lab = i
-        while lab:
-            color_map[i * 3] |= (((lab >> 0) & 1) << (7 - j))
-            color_map[i * 3 + 1] |= (((lab >> 1) & 1) << (7 - j))
-            color_map[i * 3 + 2] |= (((lab >> 2) & 1) << (7 - j))
-            j += 1
-            lab >>= 3
-    color_map = [color_map[i:i + 3] for i in range(0, len(color_map), 3)]
-    return color_map
+    # Custom colors for specific classes
+    custom_colors = {
+        'header': [168, 68, 1],   
+        'text': [104, 138, 232],   
+        'table': [128, 0, 128],  
+    }
 
+    color_map = []
+    for i in range(num_classes):
+        if i == 7:  # Header
+            color_map.append(custom_colors['header'])
+        elif i == 1:  # Text
+            color_map.append(custom_colors['text'])
+        elif i == 5:  # Table
+            color_map.append(custom_colors['table'])
+        else:
+            # Generate a unique color based on index
+            r = (i * 100 + 50) % 255
+            g = (i * 150 + 50) % 255
+            b = (i * 200 + 50) % 255
+            color_map.append([r, g, b])
+    
+    return color_map
 
 def imagedraw_textsize_c(draw, text):
     if int(PIL.__version__.split('.')[0]) < 10:

@@ -9,6 +9,8 @@ import './App.css';
 function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [activeTab, setActiveTab] = useState('Raw-text');
+  const [modelName, setModelName] = useState("RAGFLOW");
+
   const [processedData, setProcessedData] = useState({
     'Raw-text': null,
     'Layout': null,
@@ -53,22 +55,22 @@ function App() {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('tab', tab);
+    formData.append('model_name', modelName);
     setProcessing(true);
     try {
       const response = await axios.post('http://127.0.0.1:5000/api/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      if (tab === 'Raw-text') {
-        setProcessedData(prevData => ({
-          ...prevData,
-          [tab]: response.data.rawText
-        }));
-      } else if (tab === 'Layout') {
-        setProcessedData(prevData => ({
-          ...prevData,
-          [tab]: response.data.layoutData
-        }));
-      }
+      
+      const processedResponse = tab === 'Raw-text' ? 
+        response.data.rawText : 
+        response.data.layoutData;
+        
+      setProcessedData(prevData => ({
+        ...prevData,
+        [tab]: processedResponse
+      }));
+  
       setLabeledImages(prevImages => ({
         ...prevImages,
         [tab]: response.data.labeledImages || []
@@ -78,6 +80,11 @@ function App() {
     } finally {
       setProcessing(false);
     }
+  };
+
+  const handleModelChange = (newMode) => {
+    // console.log("Selected Model:", newMode);
+    setModelName(newMode); 
   };
 
   const handleFileChange = (file) => {
@@ -118,13 +125,16 @@ function App() {
           currentPage={currentPage}
           onPageChange={handlePageChange}
           highlightedText={highlightedText}
+          activeTab={activeTab}
         />
         <RightPanel
           activeTab={activeTab}
           setActiveTab={handleTabChange}
+          modelChange={handleModelChange}
           processedData={processedData}
           currentPage={currentPage}
           onTextHighlight={handleTextHighlight}
+          processing={processing}
         />
       </main>
     </div>

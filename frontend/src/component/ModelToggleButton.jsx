@@ -3,8 +3,8 @@ import { styled } from '@mui/material/styles';
 import Switch from '@mui/material/Switch';
 import { useState } from 'react';
 
-const ThreeStateModeSwitch = styled(Switch)(({ theme }) => ({
-  width: 90, // Increased width to accommodate three states
+const ModelSwitch = styled(Switch)(({ theme }) => ({
+  width: 90,
   height: 34,
   padding: 7,
   '& .MuiSwitch-switchBase': {
@@ -13,26 +13,24 @@ const ThreeStateModeSwitch = styled(Switch)(({ theme }) => ({
     transform: 'translateX(6px)',
     '&.Mui-checked': {
       color: '#fff',
-      // Adjust the transform for three states
       '&[data-state="0"]': { transform: 'translateX(6px)' },
       '&[data-state="1"]': { transform: 'translateX(30px)' },
       '&[data-state="2"]': { transform: 'translateX(54px)' },
-      '& .MuiSwitch-thumb:before': {
-        backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20">
-          <path fill="${encodeURIComponent('#fff')}" d="M10 4a6 6 0 00-6 6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6-6zm0 2a4 4 0 014 4 4 4 0 01-4 4 4 4 0 01-4-4 4 4 0 014-4z"/>
-        </svg>')`,
-      },
+      '&[data-state="3"]': { transform: 'translateX(30px)' },  
+      '&[data-state="4"]': { transform: 'translateX(6px)' },    
+      '&[data-state="5"]': { transform: 'translateX(30px)' },
+      '&[data-state="6"]': { transform: 'translateX(54px)' },
       '& + .MuiSwitch-track': {
         opacity: 1,
         backgroundColor: '#aab4be',
-        ...theme.applyStyles('dark', {
-          backgroundColor: '#8796A5',
+        ...theme.applyStyles('light', {
+          backgroundColor: '#aab4be',
         }),
       },
     },
   },
   '& .MuiSwitch-thumb': {
-    backgroundColor: '#001e3c',
+    backgroundColor: '#aab4be',
     width: 32,
     height: 32,
     '&::before': {
@@ -46,7 +44,7 @@ const ThreeStateModeSwitch = styled(Switch)(({ theme }) => ({
       backgroundPosition: 'center',
     },
     ...theme.applyStyles('dark', {
-      backgroundColor: '#003892',
+      backgroundColor: '#aab4be',
     }),
   },
   '& .MuiSwitch-track': {
@@ -54,35 +52,56 @@ const ThreeStateModeSwitch = styled(Switch)(({ theme }) => ({
     backgroundColor: '#aab4be',
     borderRadius: 20 / 2,
     ...theme.applyStyles('dark', {
-      backgroundColor: '#8796A5',
+      backgroundColor: '#aab4be',
     }),
   },
 }));
 
-export default function ThreeStateModeToggle() {
-  // 0: Light, 1: Mid Light, 2: Dark
-  const [mode, setMode] = useState(0);
+export default function ModelToggle({ onModelChange }) {
+  const [mode, setMode] = useState({
+    num: 0,
+    value: "RAGFLOW",
+  });
 
-  const handleModeChange = () => {
-    // Cycle through modes: 0 -> 1 -> 2 -> 0
-    setMode((prevMode) => (prevMode + 1) % 3);
+  const handleModelChange = () => {
+    const modes = [
+      { num: 0, value: "RAGFLOW" },   
+      { num: 1, value: "TESSERACT" }, 
+      { num: 2, value: "PADDLE" },   
+      { num: 3, value: "SURYA" },
+      { num: 4, value: "EASY" },
+      { num: 5, value: "RAPID" },
+      { num: 6, value: "MM" },
+    ];
+
+    const nextModeIndex = (mode.num + 1) % modes.length;
+    const newMode = modes[nextModeIndex];
+
+    setMode(newMode);
+    onModelChange(newMode.value);
   };
 
-  // Icons for different states (you can customize these)
-  const modeIcons = [
-    `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path fill="${encodeURIComponent('#fff')}" d="M10 4a6 6 0 00-6 6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6-6zm0 2a4 4 0 014 4 4 4 0 01-4 4 4 4 0 01-4-4 4 4 0 014-4z"/></svg>')`,
-    `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path fill="${encodeURIComponent('#fff')}" d="M10 4a6 6 0 00-6 6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6-6zm0 2a4 4 0 014 4 4 4 0 01-4 4 4 4 0 01-4-4 4 4 0 014-4z"/></svg>')`,
-    `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path fill="${encodeURIComponent('#fff')}" d="M10 4a6 6 0 00-6 6 6 6 0 006 6 6 6 0 006-6 6 6 0 00-6-6zm0 2a4 4 0 014 4 4 4 0 01-4 4 4 4 0 01-4-4 4 4 0 014-4z"/></svg>')`,
+  const modelIcons = [
+    `url('/icons/ragflow_logo.svg')`,          
+    `url('/icons/tesseractocr_logo.svg')`, 
+    `url('/icons/paddlepaddle_logo.svg')`,    
+    `url('/icons/suryaocr_logo.svg')`,   
+    `url('/icons/easycr_logo.svg')`,   
+    `url('/icons/rapidAI_logo.svg')`,  
+    `url('/icons/mmocr_logo.svg')`, 
   ];
 
   return (
-    <ThreeStateModeSwitch
-      checked={mode !== 0}
-      data-state={mode}
-      onChange={handleModeChange}
+    <ModelSwitch
+      checked={mode.num > 0} 
+      data-state={mode.num} 
+      onChange={handleModelChange}
       sx={{
+        '& .MuiSwitch-switchBase': {
+          transform: `translateX(${mode.num * 10}px)`,
+        },
         '& .MuiSwitch-thumb:before': {
-          backgroundImage: modeIcons[mode],
+          backgroundImage: modelIcons[mode.num]
         },
       }}
     />

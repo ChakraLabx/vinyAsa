@@ -16,7 +16,7 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def paginate_ocr_data(raw_text):
+def paginate_data(raw_text):
     # Group OCR data by page number
     paginated_data = {}
     for page_no, item in enumerate(raw_text, start=1):
@@ -31,8 +31,9 @@ def upload_file():
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
     
-    tab = request.form['tab']
+    tab = request.form.get('tab', 'Raw-text')
     file = request.files['file']
+    model_name = request.form.get('model_name', 'RAGFLOW')
     
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
@@ -44,17 +45,18 @@ def upload_file():
         
         if tab == 'Raw-text':
             lz = layout_zila()
-            raw_text, labeled_images = lz(filepath, output_path="data/output_ocr_dir")
-            paginated_raw_text = paginate_ocr_data(raw_text)
+            raw_text, labeled_images = lz(filepath, model_name, output_path="data/output_ocr_dir")
+            paginated_raw_text = paginate_data(raw_text)
             return jsonify({
                 'rawText': paginated_raw_text,
                 'labeledImages': labeled_images
             })
         elif tab == 'Layout':
             lb = layout_bodh("layout")
-            layout_data, labeled_images = lb(filepath, output_path="data/output_layout_dir",threshold=0.005)
+            layout_data, labeled_images = lb(filepath, model_name, output_path="data/output_layout_dir", threshold=0.005)
+            paginated_layout_text = paginate_data(layout_data)
             return jsonify({
-                'layoutData': layout_data,
+                'layoutData': paginated_layout_text,
                 'labeledImages': labeled_images
             })
         
