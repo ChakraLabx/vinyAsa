@@ -1,16 +1,3 @@
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
-
 import os
 from copy import deepcopy
 
@@ -20,6 +7,8 @@ from huggingface_hub import snapshot_download
 from vision.file_utils import get_project_base_directory
 from vision.operators import *
 from vision import seeit
+
+from surya.layout import LayoutPredictor
 
 
 class Recognizer(object):
@@ -38,11 +27,11 @@ class Recognizer(object):
         if not model_dir:
             model_dir = os.path.join(
                         get_project_base_directory(),
-                        "deepdoc")
+                        "deepLekh")
             model_file_path = os.path.join(model_dir, task_name + ".onnx")
             if not os.path.exists(model_file_path):
                 model_dir = snapshot_download(repo_id="InfiniFlow/deepdoc",
-                                              local_dir=os.path.join(get_project_base_directory(), "deepdoc"),
+                                              local_dir=os.path.join(get_project_base_directory(), "deepLekh"),
                                               local_dir_use_symlinks=False)
                 model_file_path = os.path.join(model_dir, task_name + ".onnx")
         else:
@@ -163,24 +152,18 @@ class Recognizer(object):
         i = 0
         while i + 1 < len(layouts):
             j = i + 1
-            while j < max(i + far, len(layouts)) \
+            # Corrected loop condition: min instead of max to prevent j from exceeding list bounds
+            while j < min(i + far, len(layouts)) \
                     and (layouts[i].get("type", "") != layouts[j].get("type", "")
-                         or notOverlapped(layouts[i], layouts[j])):
+                        or notOverlapped(layouts[i], layouts[j])):
                 j += 1
-            if j >= max(i + far, len(layouts)):
+            if j >= min(i + far, len(layouts)):
                 i += 1
                 continue
             if Recognizer.overlapped_area(layouts[i], layouts[j]) < thr \
                     and Recognizer.overlapped_area(layouts[j], layouts[i]) < thr:
                 i += 1
                 continue
-
-            # if layouts[i].get("score") and layouts[j].get("score"):
-            #     if layouts[i]["score"] > layouts[j]["score"]:
-            #         layouts.pop(j)
-            #     else:
-            #         layouts.pop(i)
-            #     continue
 
             area_i, area_i_1 = 0, 0
             for b in boxes:
@@ -263,7 +246,7 @@ class Recognizer(object):
 
         max_overlaped_i, max_overlaped = None, 0
         for i in range(s, e):
-            ov = Recognizer.overlapped_area(bxs[i], box)
+            ov = Recognizer.overlapped_area(bx[i], box)
             if ov <= max_overlaped:
                 continue
             max_overlaped_i = i
@@ -427,26 +410,66 @@ class Recognizer(object):
             "score": float(scores[i])
         } for i in indices]
 
-    def __call__(self, image_list, thr=0.7, batch_size=16):
-        res = []
-        imgs = []
-        for i in range(len(image_list)):
-            if not isinstance(image_list[i], np.ndarray):
-                imgs.append(np.array(image_list[i]))
-            else: imgs.append(image_list[i])
+    def __call__(self, image_list, thr=0.7, batch_size=16, model: str='RAGFLOW'):
+        if model=="RAGFLOW":
+            res = []
+            imgs = []
+            for i in range(len(image_list)):
+                if not isinstance(image_list[i], np.ndarray):
+                    imgs.append(np.array(image_list[i]))
+                else: imgs.append(image_list[i])
 
-        batch_loop_cnt = math.ceil(float(len(imgs)) / batch_size)
-        for i in range(batch_loop_cnt):
-            start_index = i * batch_size
-            end_index = min((i + 1) * batch_size, len(imgs))
-            batch_image_list = imgs[start_index:end_index]
-            inputs = self.preprocess(batch_image_list)
-            print("preprocess")
-            for ins in inputs:
-                bb = self.postprocess(self.ort_sess.run(None, {k:v for k,v in ins.items() if k in self.input_names})[0], ins, thr)
-                res.append(bb)
+            batch_loop_cnt = math.ceil(float(len(imgs)) / batch_size)
+            for i in range(batch_loop_cnt):
+                start_index = i * batch_size
+                end_index = min((i + 1) * batch_size, len(imgs))
+                batch_image_list = imgs[start_index:end_index]
+                inputs = self.preprocess(batch_image_list)
+                print("preprocess")
+                for ins in inputs:
+                    bb = self.postprocess(self.ort_sess.run(None, {k:v for k,v in ins.items() if k in self.input_names})[0], ins, thr)
+                    res.append(bb)
+            #seeit.save_results(image_list, res, self.label_list, threshold=thr)
 
-        #seeit.save_results(image_list, res, self.label_list, threshold=thr)
+        elif model=="SURYA":
+            res = []
+            for i, img in enumerate(image_list):
+                layout_predictor = LayoutPredictor()
+                layout_predictions = layout_predictor([img])
+
+                for layout_result in layout_predictions:
+                    page_layout = [
+                        {
+                            'type': box.label.lower(),
+                            'bbox': box.bbox,
+                            'score': box.confidence if box.confidence!=None else 0.0
+                        } 
+                        for box in layout_result.bboxes
+                    ]
+                    res.append(page_layout)
+
+        elif model == "VINY":
+            model = YOLO("backend/deepdoc/viny_Layout.pt")
+            names = model.model.names
+
+            res = []
+            for i, img in enumerate(image_list):
+                results = model.track(img, persist=True)
+                
+                page_layout = []
+                boxes = results[0].boxes.xyxy.cpu().numpy() 
+                clss = results[0].boxes.cls.cpu().numpy()
+                confidences = results[0].boxes.conf.cpu().numpy()
+
+                for cls, bbox, conf in zip(clss, boxes, confidences):
+                    label = names.get(int(cls)) 
+                    page_layout.append({
+                        'type': label.lower(),
+                        'bbox': bbox.tolist(), 
+                        'score': float(conf) 
+                    })
+                
+                res.append(page_layout)  
 
         return res
 

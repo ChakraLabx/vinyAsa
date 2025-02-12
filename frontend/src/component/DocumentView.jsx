@@ -21,6 +21,7 @@ const DocumentView = ({
   onPageChange,
   newFileUploaded,
   highlightedText,
+  setHighlightedText,
   activeTab
 }) => {
   // SX Styles
@@ -84,11 +85,12 @@ const DocumentView = ({
 
   useEffect(() => {
     if (newFileUploaded) {
+      setHighlightedText(null)
       setNumPages(null);
       setPageNumber(1);
       onPageChange(1);
     }
-  }, [newFileUploaded, onPageChange]);
+  }, [newFileUploaded, onPageChange, setHighlightedText]);
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
@@ -130,18 +132,15 @@ const DocumentView = ({
   }, [scale]);
 
   useEffect(() => {
+    setHighlightedText(null)
     setPageNumber(currentPage);
-  }, [currentPage]);
+  }, [currentPage, setHighlightedText]);
 
   useEffect(() => {
-    const content = contentRef.current;
-    if (content) {
-      const existingHighlight = content.querySelector('.text-highlight');
-      if (existingHighlight) {
-        existingHighlight.remove();
-      }
-    }
-  }, [activeTab]);
+    return () => {
+      setHighlightedText(null)
+    };
+  }, [activeTab, setHighlightedText]);
 
   useEffect(() => {
     if (highlightedText && containerRef.current && highlightBoxRef.current) {

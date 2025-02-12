@@ -2,7 +2,11 @@ import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
-from vision.layout_bodh_zila import layout_zila, layout_bodh
+
+from vision.praśna import QueryPraśna
+from vision.lipi import OCRLipi  
+from vision.vyavastha import LayoutVyavastha  
+from vision.kostaka import TableKostaka  
 
 app = Flask(__name__)
 CORS(app) 
@@ -15,16 +19,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def paginate_data(raw_text):
-    # Group OCR data by page number
-    paginated_data = {}
-    for page_no, item in enumerate(raw_text, start=1):
-        if page_no not in paginated_data:
-            paginated_data[page_no] = []
-        paginated_data[page_no].append(item)
-    
-    return paginated_data
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
@@ -43,25 +37,45 @@ def upload_file():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         
+        print(model_name)
         if tab == 'Raw-text':
-            lz = layout_zila()
-            raw_text, labeled_images = lz(filepath, model_name, output_path="data/output_ocr_dir")
-            paginated_raw_text = paginate_data(raw_text)
+            lz = OCRLipi()
+            raw_text, labeled_images = lz(filepath, model_name, "data/output_ocr_dir")
+            # print(raw_text)
+            # paginated_raw_text = paginate_data(raw_text)
             return jsonify({
-                'rawText': paginated_raw_text,
+                'rawText': raw_text,
                 'labeledImages': labeled_images
             })
         elif tab == 'Layout':
-            lb = layout_bodh("layout")
-            layout_data, labeled_images = lb(filepath, model_name, output_path="data/output_layout_dir", threshold=0.005)
-            paginated_layout_text = paginate_data(layout_data)
+            lb = LayoutVyavastha("layout")
+            layout_data, labeled_images = lb(filepath, model_name, **({"threshold": 0.005} if model_name == "RAGFLOW" else {}), output_path="data/output_layout_dir")
+            # print(layout_data)
+            # paginated_layout_text = paginate_data(layout_data)
             return jsonify({
-                'layoutData': paginated_layout_text,
+                'layoutData': layout_data,
                 'labeledImages': labeled_images
             })
-        
+        elif tab == 'Tables':
+            tk = TableKostaka()
+            table_html = tk(filepath, model_name, **({"threshold": 0.2} if model_name == "RAGFLOW" else {}))
+            print(table_html)
+            return jsonify({
+                'tableHtml': table_html
+            })
+        elif tab == 'Queries':
+            query = request.form.get('query', '')
+            if query:
+                lb = LayoutVyavastha("layout")
+                layout_data = lb(filepath, model_name, **({"threshold": 0.005} if model_name == "RAGFLOW" else {}))
+                layout_rag = QueryPraśna(layout_data)
+                res = layout_rag(query)
+                return jsonify({
+                    'ragResponse': res
+                })
+            
     return jsonify({'error': 'Invalid file type'}), 400
 
 if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    app.run(debug=True)
+    app.run(port=8000, debug=True)

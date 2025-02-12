@@ -482,12 +482,12 @@ class OCR(object):
             try:
                 model_dir = os.path.join(
                         get_project_base_directory(),
-                        "deepdoc")
+                        "deepLekh")
                 self.text_detector = TextDetector(model_dir)
                 self.text_recognizer = TextRecognizer(model_dir)
             except Exception as e:
                 model_dir = snapshot_download(repo_id="InfiniFlow/deepdoc",
-                                              local_dir=os.path.join(get_project_base_directory(), "deepdoc"),
+                                              local_dir=os.path.join(get_project_base_directory(), "deepLekh"),
                                               local_dir_use_symlinks=False)
                 self.text_detector = TextDetector(model_dir)
                 self.text_recognizer = TextRecognizer(model_dir)

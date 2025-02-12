@@ -3,7 +3,7 @@ import { Box, Button, Typography, CircularProgress } from '@mui/material';
 import TabContent from './TabContent';
 import ModelToggleButton from './ModelToggleButton';
 
-function RightPanel({ activeTab, setActiveTab, modelChange, processedData, currentPage, onTextHighlight, processing }) {
+function RightPanel({ activeTab, setActiveTab, modelName, modelChange, processedData, currentPage, onTextHighlight, processing, message, setMessage, onQuerySubmit, modelConfigByTab, mode, setMode }) {
   const sx = {
     rightPanel: {
       flexGrow: 1,
@@ -22,6 +22,30 @@ function RightPanel({ activeTab, setActiveTab, modelChange, processedData, curre
       height: '100%',
       flexDirection: 'column',
       gap: '1rem'
+    },
+    queryInput: {
+      width: '100%',
+      padding: '10px 15px',
+      border: '1px solid #ddd',
+      borderRadius: '4px',
+      fontSize: '14px',
+      '&:focus': {
+        outline: 'none',
+        borderColor: '#0073bb'
+      }
+    },
+    queryContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      gap: '20px'
+    },
+    messageContainer: {
+      flex: 1,
+      overflowY: 'auto',
+      padding: '20px',
+      backgroundColor: '#f8f9fa',
+      borderRadius: '8px'
     }
   };
 
@@ -50,33 +74,44 @@ function RightPanel({ activeTab, setActiveTab, modelChange, processedData, curre
 
   useEffect(() => {
     if (processedData[activeTab]) {
-      if (activeTab === 'Raw-text' || activeTab === 'Layout') {
-        const pageData = processedData[activeTab][currentPage]?.at(0);
-        console.log("Page data:", pageData);
-        
-        if (pageData) {
-          setCurrentPageData(pageData.map((data) => ({
-            text: data.text,
-            x0: data.x0,
-            x1: data.x1,
-            top: data.top,
-            bottom: data.bottom,
-            ...(activeTab === 'Layout' && {
-              layoutno: data.layoutno,
-              score: data.score,
-              type: data.type
-            })
-          })));
-        } else {
-          setCurrentPageData(null);
-        }
+      const currentProcessedData = processedData[activeTab];
+      
+      if (['Raw-text', 'Layout', 'Tables'].includes(activeTab)) {
+        const pageData =  currentProcessedData.data?.[currentPage - 1];
+  
+        setCurrentPageData(
+          pageData ? (
+            activeTab === 'Tables' 
+              ? [pageData] 
+              : pageData.map(data => ({
+                  text: data.text,
+                  x0: data.x0,
+                  x1: data.x1,
+                  top: data.top,
+                  bottom: data.bottom,
+                  ...(activeTab === 'Layout' && {
+                    layoutno: data.layoutno,
+                    score: data.score,
+                    type: data.type
+                  })
+                }))
+          ) : null
+        );
+      } else if (activeTab === 'Queries') {
+        setCurrentPageData(
+          currentProcessedData.data 
+            ? Array.isArray(currentProcessedData.data) 
+              ? currentProcessedData.data 
+              : [currentProcessedData.data] 
+            : null
+        );
       } else {
-        setCurrentPageData(processedData[activeTab]);
+        setCurrentPageData(currentProcessedData.data);
       }
     } else {
       setCurrentPageData(null);
     }
-  }, [activeTab, processedData, currentPage]);
+  }, [activeTab, processedData, currentPage, modelName]);
 
   const handleTextClick = (textData) => {
     setSelectedTextData(textData);
@@ -101,8 +136,110 @@ function RightPanel({ activeTab, setActiveTab, modelChange, processedData, curre
         </Box>
       );
     }
-
-    if (!currentPageData) {
+  
+    if (activeTab === 'Queries') {
+      return (
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: 'calc(100vh - 150px)',
+          gap: '20px'
+        }}>
+          {/* Chat messages display area */}
+          <Box sx={{
+            flex: 1,
+            backgroundColor: '#f8f9fa',
+            borderRadius: '8px',
+            padding: '20px',
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '15px'
+          }}>
+            {currentPageData && (
+              <Box sx={{
+                alignSelf: 'flex-start',
+                maxWidth: '100%',
+                backgroundColor: 'white',
+                padding: '15px',
+                borderRadius: '10px',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                wordWrap: 'break-word', 
+                overflowWrap: 'break-word',  
+                whiteSpace: 'pre-wrap',
+              }}>
+                <Typography variant="body1" sx={{wordBreak: 'break-word'}}>
+                  {currentPageData}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+  
+          {/* Query input area */}
+          <Box sx={{
+            display: 'flex',
+            gap: '10px',
+            padding: '10px',
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
+          }}>
+            <Box sx={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '8px',
+              padding: '8px 15px'
+            }}>
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Ask a question about the document..."
+                style={{
+                  width: '100%',
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  outline: 'none',
+                  fontSize: '14px'
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    onQuerySubmit();
+                  }
+                }}
+              />
+            </Box>
+            <Button
+              onClick={onQuerySubmit}
+              disabled={processing || !message.trim()}
+              sx={{
+                minWidth: '100px',
+                backgroundColor: '#0073bb',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: '#005c99'
+                },
+                '&:disabled': {
+                  backgroundColor: '#cccccc',
+                  color: '#666666'
+                }
+              }}
+            >
+              {processing ? (
+                <CircularProgress size={24} sx={{ color: 'white' }} />
+              ) : (
+                'Send'
+              )}
+            </Button>
+          </Box>
+        </Box>
+      );
+    }
+  
+    else if (!currentPageData) {
       return (
         <Box sx={{
           display: 'flex',
@@ -117,7 +254,7 @@ function RightPanel({ activeTab, setActiveTab, modelChange, processedData, curre
       );
     }
   
-    if ((activeTab === 'Raw-text' || activeTab === 'Layout') && Array.isArray(currentPageData)) {
+    if (['Raw-text', 'Layout', 'Tables', 'Queries'].includes(activeTab)) {
       if (activeTab === 'Raw-text') {
         return (
           <Box sx={{
@@ -160,7 +297,7 @@ function RightPanel({ activeTab, setActiveTab, modelChange, processedData, curre
         );
       } 
       
-      if (activeTab === 'Layout') {
+      else if (activeTab === 'Layout') {
         const getColorMapList = (numClasses) => {
           const customColors = {
             'header': [168, 68, 1],
@@ -190,15 +327,27 @@ function RightPanel({ activeTab, setActiveTab, modelChange, processedData, curre
           "_background_",
           "Text",
           "Title",
-          "Figure", 
+          "Figure",
           "Figure caption",
           "Table",
           "Table caption",
           "Header",
           "Footer",
           "Reference",
-          "Equation"
-        ];
+          "Equation",
+          "Caption", 
+          "Footnote", 
+          "Formula", 
+          "List-item", 
+          "Page-footer", 
+          "Page-header", 
+          "Picture", 
+          "Section-header", 
+          "Form", 
+          "Table-of-contents", 
+          "Handwriting", 
+          "Text-inline-math"
+      ];
         
         const colorMap = getColorMapList(labels.length);
         const clsid2color = Object.fromEntries(
@@ -287,6 +436,137 @@ function RightPanel({ activeTab, setActiveTab, modelChange, processedData, curre
           </Box>
         );
       }
+      else if (activeTab === 'Queries') {
+        return (
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: 'calc(100vh - 200px)',
+            gap: '20px'
+          }}>
+            {/* Chat messages display area */}
+            <Box sx={{
+              flex: 1,
+              backgroundColor: '#f8f9fa',
+              borderRadius: '8px',
+              padding: '20px',
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '15px'
+            }}>
+              {processedData['Queries'] && (
+                <Box sx={{
+                  alignSelf: 'flex-start',
+                  maxWidth: '80%',
+                  backgroundColor: 'white',
+                  padding: '15px',
+                  borderRadius: '10px',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                }}>
+                  <Typography variant="body1">
+                    {processedData['Queries']}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+      
+            {/* Query input area */}
+            <Box sx={{
+              display: 'flex',
+              gap: '10px',
+              padding: '10px',
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
+            }}>
+              <Box sx={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '8px',
+                padding: '8px 15px'
+              }}>
+                <input
+                  type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Ask a question about the document..."
+                  style={{
+                    width: '100%',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    outline: 'none',
+                    fontSize: '14px'
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      onQuerySubmit();
+                    }
+                  }}
+                />
+              </Box>
+              <Button
+                onClick={onQuerySubmit}
+                disabled={processing || !message.trim()}
+                sx={{
+                  minWidth: '100px',
+                  backgroundColor: '#0073bb',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: '#005c99'
+                  },
+                  '&:disabled': {
+                    backgroundColor: '#cccccc',
+                    color: '#666666'
+                  }
+                }}
+              >
+                {processing ? (
+                  <CircularProgress size={24} sx={{ color: 'white' }} />
+                ) : (
+                  'Send'
+                )}
+              </Button>
+            </Box>
+          </Box>
+        );
+      }
+      else if (activeTab === 'Tables') {
+        return (
+          <Box sx={{
+            overflowX: 'auto',
+            width: '100%',
+            // height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px'
+          }}>
+            {currentPageData?.map((htmlContent, index) => (
+              <Box key={index} sx={{
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                overflow: 'hidden',
+                border: '1px solid #e0e0e0',
+              }}>
+                <iframe
+                  srcDoc={htmlContent}
+                  style={{
+                    width: '100%',
+                    height: '650px',
+                    border: 'none',
+                    backgroundColor: 'white'
+                  }}
+                  title={`Table Content - Page ${currentPage + 1}`}
+                />
+              </Box>
+            ))}
+          </Box>
+        );
+      }
     }
     return <pre>{JSON.stringify(currentPageData, null, 2)}</pre>;
   };
@@ -310,7 +590,13 @@ function RightPanel({ activeTab, setActiveTab, modelChange, processedData, curre
           </li>
         ))}
         <li className="nav-item model-toggle ms-auto">
-          <ModelToggleButton onModelChange={modelChange} />
+          <ModelToggleButton 
+            onModelChange={modelChange} 
+            activeTab={activeTab}
+            modelConfigByTab={modelConfigByTab} 
+            mode={mode}
+            setMode={setMode}
+          />
         </li>
       </ul>
       <Box>

@@ -1,15 +1,3 @@
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
 import logging
 import os
 import re
@@ -18,9 +6,9 @@ from collections import Counter
 import numpy as np
 from huggingface_hub import snapshot_download
 
-from file_utils import get_project_base_directory
+from vision.file_utils import get_project_base_directory
 from rag.nlp import rag_tokenizer
-from .recognizer import Recognizer
+from vision.recognizer import Recognizer
 
 
 class TableStructureRecognizer(Recognizer):
@@ -37,10 +25,10 @@ class TableStructureRecognizer(Recognizer):
         try:
             super().__init__(self.labels, "tsr", os.path.join(
                     get_project_base_directory(),
-                    "deepdoc"))
+                    "deepLekh"))
         except Exception as e:
             super().__init__(self.labels, "tsr", snapshot_download(repo_id="InfiniFlow/deepdoc",
-                                              local_dir=os.path.join(get_project_base_directory(), "deepdoc"),
+                                              local_dir=os.path.join(get_project_base_directory(), "deepLekh"),
                                               local_dir_use_symlinks=False))
 
     def __call__(self, images, thr=0.2):
@@ -101,28 +89,33 @@ class TableStructureRecognizer(Recognizer):
     @staticmethod
     def blockType(b):
         patt = [
-            ("^(20|19)[0-9]{2}[0-9]{1,2}[0-9]{1,2}*$", "Dt"),
-            (r"^(20|19)[0-9]{2}$", "Dt"),
-            ("^[0-9]{1,2}[0-9]{1,2}*$", "Dt"),
-            (r"^$", "Dt"),
-            (r"^(20|19)[0-9]{2}[0-9]{1,2}*$", "Dt"),
-            (r"^(20|19)[0-9]{2}[ABCDE]$", "Dt"),
-            ("^[0-9.,+%/ -]+$", "Nu"),
-            (r"^[0-9A-Z/\._~-]+$", "Ca"),
-            (r"^[A-Z]*[a-z' -]+$", "En"),
-            (r"^[0-9.,+-]+[0-9A-Za-z/$￥%<>（）()' -]+$", "NE"),
-            (r"^.{1}$", "Sg")
+            # Date patterns (Dt)
+            (r"^(20|19)\d{4}(\d{2})?$", "Dt"),          # Handles YYYYMMDD or shorter
+            (r"^(20|19)\d{2}$", "Dt"),                 # Year only
+            (r"^\d{1,4}[-\/.]\d{1,2}[-\/.]\d{1,4}$", "Dt"),  # Date formats with separators
+            
+            # Number/Currency patterns (Nu/Ca)
+            (r"^[0-9.,+%\/ -]+$", "Nu"),               # Numbers/percentages
+            (r"^[0-9A-Z/._~-]+$", "Ca"),               # Codes/IDs
+            
+            # Text patterns
+            (r"^[A-Z]*[a-z' -]+$", "En"),              # English words
+            (r"^[0-9.,+-]+[0-9A-Za-z/$￥%<>（）()' -]+$", "NE"),  # Mixed content
+            
+            # Special cases
+            (r"^.$", "Sg"),                            # Single character
+            (r"^\s*$", "Dt")                           # Empty/whitespace
         ]
+
         for p, n in patt:
             if re.search(p, b["text"].strip()):
                 return n
-        tks = [t for t in rag_tokenizer.tokenize(b["text"]).split(" ") if len(t) > 1]
-        if len(tks) > 3:
-            if len(tks) < 12:
-                return "Tx"
-            else:
-                return "Lx"
 
+        tks = [t for t in rag_tokenizer.tokenize(b["text"]).split(" ") if len(t) > 1]
+        
+        if len(tks) > 3:
+            return "Lx" if len(tks) >= 12 else "Tx"
+        
         if len(tks) == 1 and rag_tokenizer.tag(tks[0]) == "nr":
             return "Nr"
 

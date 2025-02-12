@@ -1,10 +1,19 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import DocumentView from './DocumentView';
 import DocumentControls from './DocumentControls';
-import Box from '@mui/material/Box'; // Assuming you're using Material-UI
+import Box from '@mui/material/Box';
 
-function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChange, currentPage, onPageChange, highlightedText, activeTab }) {
-  // Defining sx styles inline
+function LeftPanel({
+  activeTab,
+  processFile,
+  processing,
+  currentPage,
+  onPageChange,
+  highlightedText,
+  setHighlightedText,
+  resetAllData,
+  setActiveTab
+}) {
   const sx = {
     leftPanel: {
       flexGrow: 1,
@@ -24,16 +33,21 @@ function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChang
   const [fileType, setFileType] = useState('pdf');
   const [resetZoomFunction, setResetZoomFunction] = useState(() => {});
   const [newFileUploaded, setNewFileUploaded] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [labeledImages, setLabeledImages] = useState({
+    'Raw-text': [],
+    'Layout': [],
+    'Forms': [],
+    'Tables': [],
+    'Queries': [],
+    'Signatures': []
+  });
 
   const sampleDocuments = {
-    'Receipts': { url: 'data/pdfs/ASAD013-LOAD.pdf', type: 'pdf' },
-    'Form': { url: 'data/chitra/09-7012530-003.jpg', type: 'image' },
-    'Security and Exchange Commission Filing': { url: 'data/pdfs/10-Q-Q3-2024-As-Filed.pdf', type: 'pdf' },
-    'Filing': { url: 'data/pdfs/10-Q-Q3-2024-As-Filed.pdf', type: 'pdf' },
-    'Vaccination Card': { url: 'data/pdfs/certificate.pdf', type: 'pdf' }
+    // ... (keep sampleDocuments same as before)
   };
 
-  const handleFileInputChange = (event) => {
+  const handleFileInputChange = async (event) => {
     const file = event.target.files[0];
     if (file) {
       const url = URL.createObjectURL(file);
@@ -41,12 +55,16 @@ function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChang
       setFileType(file.type.includes('pdf') ? 'pdf' : 'image');
       setDocumentName(file.name);
       resetZoomFunction();
-      handleFileChange(file);
+      setSelectedFile(file);
+      resetAllData();
+      setActiveTab("Raw-text");
+      const images = await processFile(file, 'Raw-text');
+      setLabeledImages(prev => ({ ...prev, 'Raw-text': images }));
       setNewFileUploaded(true);
     }
   };
 
-  const handleDocumentChange = (event) => {
+  const handleDocumentChange = async (event) => {
     const selectedDoc = event.target.value;
     setDocumentName(selectedDoc);
     setSelectedFile(null);
@@ -67,21 +85,19 @@ function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChang
   }, [newFileUploaded]);
 
   return (
-    <Box 
-      id="left-panel" 
-      sx={sx.leftPanel}
-    >
+    <Box id="left-panel" sx={sx.leftPanel}>
       <DocumentView
         documentName={documentName}
         fileUrl={fileUrl || sampleDocuments[documentName].url}
         fileType={fileType || sampleDocuments[documentName].type}
         resetZoom={resetZoom}
-        labeledImages={labeledImages}
+        labeledImages={labeledImages[activeTab]}
         processing={processing}
         currentPage={currentPage}
         onPageChange={onPageChange}
         newFileUploaded={newFileUploaded}
         highlightedText={highlightedText}
+        setHighlightedText={setHighlightedText}
         activeTab={activeTab}
       />
       <DocumentControls

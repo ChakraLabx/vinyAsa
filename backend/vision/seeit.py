@@ -1,16 +1,3 @@
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
-
 import os
 import PIL
 from PIL import ImageDraw
@@ -49,7 +36,7 @@ def draw_box_recog(im, result, lables, threshold=0.5):
         draw.text((xmin + 1, ymin - th), text, fill=(255, 255, 255))
     return im
 
-def draw_box(im, result, labels, threshold):
+def draw_box(im, result, labels, threshold=0.5):
     draw_thickness = min(im.size) // 320
     draw = ImageDraw.Draw(im)
     color_list = get_color_map_list(len(labels))
@@ -70,7 +57,7 @@ def draw_box(im, result, labels, threshold):
         tw, th = imagedraw_textsize_c(draw, text)
         draw.rectangle(
             [(xmin + 1, ymin - th), (xmin + tw + 1, ymin)], fill=color)
-        draw.text((xmin + 1, ymin - th), text, fill=(255, 255, 255))
+        # draw.text((xmin + 1, ymin - th), text, fill=(255, 255, 255))
 
     return im
 
