@@ -36,11 +36,11 @@ logging.getLogger('requests').setLevel(logging.ERROR)
 logging.getLogger('httpx').setLevel(logging.ERROR)
 logger = logging.getLogger(__name__)
 
-embedding = AzureOpenAI(
-    api_key="",  
-    api_version="",
-    azure_endpoint=""
-)
+# embedding = AzureOpenAI(
+#     api_key="",  
+#     api_version="",
+#     azure_endpoint=""
+# )
 
 # llm = AzureOpenAI(
 #     azure_endpoint="", 
@@ -48,7 +48,7 @@ embedding = AzureOpenAI(
 #     api_version=""
 # )
 
-llm = OpenAI(api_key="", base_url="")
+# llm = OpenAI(api_key="", base_url="")
 
 def get_project_base_directory():
     return os.getcwd()
