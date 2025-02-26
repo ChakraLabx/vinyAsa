@@ -15,9 +15,6 @@ from vision.table_structure_recognizer import TableStructureRecognizer
 from vision.ocr import OCR
 from vision.in_out import init_in_out
 
-import re
-import numpy as np
-
 class TableKostaka(object):
     def surya_tables2html(self, images_path, output_path=None):
         # SURYA category: functions related to generating HTML from SURYA results.

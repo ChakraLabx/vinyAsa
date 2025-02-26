@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, CircularProgress } from '@mui/material';
+import { Box, Button, Typography, CircularProgress, Grid } from '@mui/material';
 import TabContent from './TabContent';
 import ModelToggleButton from './ModelToggleButton';
 
@@ -75,14 +75,14 @@ function RightPanel({ activeTab, setActiveTab, modelName, modelChange, processed
   useEffect(() => {
     if (processedData[activeTab]) {
       const currentProcessedData = processedData[activeTab];
-      
-      if (['Raw-text', 'Layout', 'Tables'].includes(activeTab)) {
-        const pageData =  currentProcessedData.data?.[currentPage - 1];
+  
+      if (['Raw-text', 'Layout', 'Tables', 'Signatures'].includes(activeTab)) {
+        const pageData = currentProcessedData.data?.[currentPage - 1];
   
         setCurrentPageData(
-          pageData ? (
-            activeTab === 'Tables' 
-              ? [pageData] 
+          pageData
+            ? activeTab === 'Tables'
+              ? [pageData]
               : pageData.map(data => ({
                   text: data.text,
                   x0: data.x0,
@@ -92,19 +92,47 @@ function RightPanel({ activeTab, setActiveTab, modelName, modelChange, processed
                   ...(activeTab === 'Layout' && {
                     layoutno: data.layoutno,
                     score: data.score,
-                    type: data.type
-                  })
+                    type: data.type,
+                  }),
                 }))
-          ) : null
-        );
-      } else if (activeTab === 'Queries') {
-        setCurrentPageData(
-          currentProcessedData.data 
-            ? Array.isArray(currentProcessedData.data) 
-              ? currentProcessedData.data 
-              : [currentProcessedData.data] 
             : null
         );
+      } else if (activeTab === 'Forms') {
+        const pageData = currentProcessedData.data?.[currentPage - 1];
+        setCurrentPageData(
+          pageData
+            ? pageData.map(pair => ({
+                key: pair.key[0].key_text,
+                key_bbox: {
+                  x0: pair.key[0].x0,
+                  x1: pair.key[0].x1,
+                  top: pair.key[0].top,
+                  bottom: pair.key[0].bottom,
+                  type: pair.key[0].type,
+                  score: pair.key[0].score,
+                },
+                value: pair.value[0].value_text,
+                value_bbox: {
+                  x0: pair.value[0].x0,
+                  x1: pair.value[0].x1,
+                  top: pair.value[0].top,
+                  bottom: pair.value[0].bottom,
+                  type: pair.value[0].type,
+                  score: pair.value[0].score,
+                },
+              }))
+            : null
+        );
+      } else if (activeTab === 'Queries') {
+        const queryData = currentProcessedData.data;
+        const renderableQueryData = queryData
+          ? Array.isArray(queryData)
+            ? queryData.map(item =>
+                typeof item === 'object' ? (item.text ? item.text : JSON.stringify(item)) : item
+              )
+            : [typeof queryData === 'object' ? (queryData.text ? queryData.text : JSON.stringify(queryData)) : queryData]
+          : null;
+        setCurrentPageData(renderableQueryData);
       } else {
         setCurrentPageData(currentProcessedData.data);
       }
@@ -112,6 +140,7 @@ function RightPanel({ activeTab, setActiveTab, modelName, modelChange, processed
       setCurrentPageData(null);
     }
   }, [activeTab, processedData, currentPage, modelName]);
+  
 
   const handleTextClick = (textData) => {
     setSelectedTextData(textData);
@@ -254,8 +283,8 @@ function RightPanel({ activeTab, setActiveTab, modelName, modelChange, processed
       );
     }
   
-    if (['Raw-text', 'Layout', 'Tables', 'Queries'].includes(activeTab)) {
-      if (activeTab === 'Raw-text') {
+    if (['Raw-text', 'Layout', 'Forms', 'Tables', 'Queries', 'Signatures'].includes(activeTab)) {
+      if (activeTab === 'Raw-text' || activeTab === 'Signatures') {
         return (
           <Box sx={{
             display: 'flex',
@@ -436,6 +465,81 @@ function RightPanel({ activeTab, setActiveTab, modelName, modelChange, processed
           </Box>
         );
       }
+      else if (activeTab === 'Forms') {
+        return (
+          <Grid container spacing={2}>
+            {currentPageData.map((item, index) => {
+              // Determine if the key or value is currently selected (for styling)
+              const isKeySelected = selectedTextData === item.key_bbox;
+              const isValueSelected = selectedTextData === item.value_bbox;
+      
+              return (
+                <React.Fragment key={index}>
+                  {/* Left column: Key */}
+                  <Grid item xs={6}>
+                    <Button
+                      onClick={() => handleTextClick(item.key_bbox)}
+                      sx={{
+                        backgroundColor: isKeySelected ? '#f1faff' : '#eaeded',
+                        border: isKeySelected ? '1px solid #0073bb' : '1px solid transparent',
+                        textTransform: 'none',
+                        color: 'black',
+                        borderRadius: '10px',
+                        fontWeight: 500,
+                        fontFamily: 'Poppins',
+                        transition: 'all 0.5s',
+                        padding: '8px 12px',
+                        whiteSpace: 'normal',
+                        textAlign: 'center',
+                        maxWidth: '100%',
+                        '&:hover': {
+                          backgroundColor: isKeySelected ? '#f1faff' : '#eaeded',
+                          border: isKeySelected ? '1px solid #0073bb' : '1px solid #0073bb',
+                        },
+                        '&.active': {
+                          border: '1px solid #0073bb',
+                        },
+                      }}
+                    >
+                      {item.key || 'No key available'}
+                    </Button>
+                  </Grid>
+      
+                  {/* Right column: Value */}
+                  <Grid item xs={6}>
+                    <Button
+                      onClick={() => handleTextClick(item.value_bbox)}
+                      sx={{
+                        backgroundColor: isValueSelected ? '#f1faff' : '#eaeded',
+                        border: isValueSelected ? '1px solid #0073bb' : '1px solid transparent',
+                        textTransform: 'none',
+                        color: 'black',
+                        borderRadius: '10px',
+                        fontWeight: 500,
+                        fontFamily: 'Poppins',
+                        transition: 'all 0.5s',
+                        padding: '8px 12px',
+                        whiteSpace: 'normal',
+                        textAlign: 'center',
+                        maxWidth: '100%',
+                        '&:hover': {
+                          backgroundColor: isValueSelected ? '#f1faff' : '#eaeded',
+                          border: isValueSelected ? '1px solid #0073bb' : '1px solid #0073bb',
+                        },
+                        '&.active': {
+                          border: '1px solid #0073bb',
+                        },
+                      }}
+                    >
+                      {item.value || 'No value available'}
+                    </Button>
+                  </Grid>
+                </React.Fragment>
+              );
+            })}
+          </Grid>
+        );
+      }      
       else if (activeTab === 'Queries') {
         return (
           <Box sx={{

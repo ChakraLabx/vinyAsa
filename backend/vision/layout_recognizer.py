@@ -33,7 +33,9 @@ class LayoutRecognizer(Recognizer):
         "Form", 
         "Table-of-contents", 
         "Handwriting", 
-        "Text-inline-math"
+        "Text-inline-math",
+        "Plain Text", 
+        "Abandon"
     ]
 
     def __init__(self, domain):
@@ -137,7 +139,8 @@ class LayoutRecognizer(Recognizer):
                 "equation", "page-footer", "page-header", "caption", "footnote", "formula", 
                 "list-item", "picture", 
                 "section-header", "form", 
-                "handwriting", "text-inline-math"
+                "handwriting", "text-inline-math", 
+                "plain text", "abandon"
             ]
             
             for lt in layout_types:
@@ -149,9 +152,8 @@ class LayoutRecognizer(Recognizer):
                 if lt.get("visited"):
                     continue
                 lt = deepcopy(lt)
-                del lt["type"]
                 lt["text"] = ""
-                lt["layout_type"] = lt["type"]
+                lt["layout_type"] = lt["type"] 
                 lt["layoutno"] = f"{lt['layout_type']}-{i}"
                 bxs.append(lt)
 

@@ -1,6 +1,7 @@
 import os
 from copy import deepcopy
 
+from ultralytics import YOLO
 import onnxruntime as ort
 from huggingface_hub import snapshot_download
 
@@ -449,7 +450,7 @@ class Recognizer(object):
                     res.append(page_layout)
 
         elif model == "VINY":
-            model = YOLO("backend/deepdoc/viny_Layout.pt")
+            model = YOLO("deepLekh/viny_Layout.pt")
             names = model.model.names
 
             res = []
@@ -462,7 +463,8 @@ class Recognizer(object):
                 confidences = results[0].boxes.conf.cpu().numpy()
 
                 for cls, bbox, conf in zip(clss, boxes, confidences):
-                    label = names.get(int(cls)) 
+                    label = names.get(int(cls))
+                    print(label)
                     page_layout.append({
                         'type': label.lower(),
                         'bbox': bbox.tolist(), 

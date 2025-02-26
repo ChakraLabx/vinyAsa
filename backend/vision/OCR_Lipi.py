@@ -117,8 +117,6 @@ class OCRLipi(OCR):
 
             if outputs:
                 img_with_boxes = draw_box(images[i], bxs, ["ocr"])
-                # img_with_boxes.save(outputs[i], quality=95)
-                # Instead of saving, convert to base64
                 buffered = io.BytesIO()
                 img_with_boxes.save(buffered, format="JPEG")
                 img_str = base64.b64encode(buffered.getvalue()).decode()

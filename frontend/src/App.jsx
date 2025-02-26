@@ -9,7 +9,7 @@ import './App.css';
 function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [activeTab, setActiveTab] = useState('Raw-text');
-  const [modelName, setModelName] = useState("RAGFLOW");
+  const [modelName, setModelName] = useState("");
   const [message, setMessage] = useState("");
   const [processing, setProcessing] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -52,18 +52,17 @@ function App() {
       { num: 1, value: "SURYA" }
     ],
     'Forms': [
-      { num: 0, value: "RAGFLOW" },
-      { num: 1, value: "PADDLE" }
+      { num: 0, value: "VINY" },
     ],
     'Tables': [
       { num: 0, value: "RAGFLOW" },
       { num: 1, value: "SURYA" }
     ],
     'Signatures': [
-      { num: 0, value: "RAGFLOW" }
+      { num: 0, value: "VINY" }
     ]
   }), []);
-  const currentModes = modelConfigByTab[activeTab] || [{ num: 0, value: "RAGFLOW" }];
+  const currentModes = modelConfigByTab[activeTab];
   const [mode, setMode] = useState(currentModes[0]);
 
   const resetAllData = () => {
@@ -83,10 +82,14 @@ function App() {
       'Queries': [],
       'Signatures': []
     });
-    setCurrentPage(0);
   };
 
   const processFile = async (file, tab, forceReprocess = false, model) => {
+    if (tab === 'Queries' && (!message || !message.trim())) {
+      console.warn('No query message provided. Skipping backend call for Queries tab.');
+      return;
+    }
+  
     const formData = new FormData();
     formData.append('file', file);
     formData.append('tab', tab);
@@ -94,43 +97,59 @@ function App() {
     if (tab === 'Queries') {
       formData.append('query', message);
     }
-
+    
     setProcessing(true);
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      const response = await axios.post('http://127.0.0.1:7001/api/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-      
-      const processedResponse = tab === 'Raw-text' ? response.data.rawText : 
-                            tab === 'Layout' ? response.data.layoutData :
-                            tab === 'Tables' ? response.data.tableHtml :
-                            tab === 'Queries' ? response.data.ragResponse :
-                            response.data;
-        
+      console.log(response.data);
+  
+      const processedResponse =
+        tab === 'Raw-text'
+          ? response.data.rawText
+          : tab === 'Layout'
+          ? response.data.layoutData
+          : tab === 'Forms'
+          ? response.data.formData
+          : tab === 'Tables'
+          ? response.data.tableHtml
+          : tab === 'Queries'
+          ? response.data.ragResponse
+          : tab === 'Signatures'
+          ? response.data.signature
+          : response.data;
+  
       setProcessedData(prevData => ({
         ...prevData,
         [tab]: {
           data: processedResponse,
-          model: model || modelName
-        }
+          model: model || modelName,
+        },
       }));
   
       if (response.data.labeledImages) {
         setLabeledImages(prevImages => ({
           ...prevImages,
-          [tab]: response.data.labeledImages || []
+          [tab]: response.data.labeledImages || [],
         }));
       }
     } catch (error) {
-      console.error(`Error processing file:`, error);
+      console.error('Error processing file:', error);
     } finally {
       setProcessing(false);
     }
   };
   
+  
   const handleModelChange = (newMode) => {
     if (newMode !== modelName) {
       setModelName(newMode);
+      const currentTabData = processedData[activeTab];
+      if (currentTabData?.model === newMode) {
+        return;
+      }
+  
       if (selectedFile) {
         processFile(selectedFile, activeTab, false, newMode);
       }
@@ -141,17 +160,24 @@ function App() {
     if (file) {
       setSelectedFile(file);
       resetAllData();
-      setActiveTab("Raw-text");
-      processFile(file, 'Raw-text', false, modelName);
+      const newTab = 'Raw-text'
+      const newModes = modelConfigByTab[newTab];
+      const defaultMode = newModes[0]; 
+      setModelName(defaultMode.value);
+      setActiveTab(newTab);
+      setMode(defaultMode);
+      processFile(file, newTab, false, defaultMode.value);
     }
   };
 
   const handleTabChange = (newTab) => {
-    const defaultModel = modelConfigByTab[newTab][0].value;
-    setModelName(defaultModel); 
+    const newModes = modelConfigByTab[newTab];
+    const defaultMode = newModes[0]; 
+    setModelName(defaultMode.value);
     setActiveTab(newTab);
+    setMode(defaultMode);
     if (selectedFile && !processedData[newTab]) {
-      processFile(selectedFile, newTab, false, defaultModel);
+      processFile(selectedFile, newTab, false, defaultMode.value);
     }
   };
 
@@ -171,7 +197,7 @@ function App() {
 
   return (
     <div className="d-flex flex-column vh-100">
-      <Header />
+      <Header processedData={processedData[activeTab]} resetAllData={resetAllData}/>
       <main className="flex-grow-1 d-flex">
         <LeftPanel
           setSelectedFile={setSelectedFile}

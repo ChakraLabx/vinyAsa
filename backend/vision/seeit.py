@@ -36,7 +36,7 @@ def draw_box_recog(im, result, lables, threshold=0.5):
         draw.text((xmin + 1, ymin - th), text, fill=(255, 255, 255))
     return im
 
-def draw_box(im, result, labels, threshold=0.5):
+def draw_box(im, result, labels, threshold=0.1):
     draw_thickness = min(im.size) // 320
     draw = ImageDraw.Draw(im)
     color_list = get_color_map_list(len(labels))
@@ -57,7 +57,7 @@ def draw_box(im, result, labels, threshold=0.5):
         tw, th = imagedraw_textsize_c(draw, text)
         draw.rectangle(
             [(xmin + 1, ymin - th), (xmin + tw + 1, ymin)], fill=color)
-        # draw.text((xmin + 1, ymin - th), text, fill=(255, 255, 255))
+        draw.text((xmin + 1, ymin - th), text, fill=(255, 255, 255))
 
     return im
 

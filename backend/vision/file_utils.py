@@ -36,23 +36,19 @@ logging.getLogger('requests').setLevel(logging.ERROR)
 logging.getLogger('httpx').setLevel(logging.ERROR)
 logger = logging.getLogger(__name__)
 
-# Set your OpenAI API key
-os.environ["OPENAI_API_KEY"] = "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"
-COHERE_API_KEY = "BGsS3IKBNffUCeWobPpIzmXUgTTgboJfhvZmaOBO"
-
 embedding = AzureOpenAI(
-    api_key="10eef653f8634d70997b27548577dcf4",  
-    api_version="2024-06-01",
-    azure_endpoint="https://azureunadaopenai.openai.azure.com/openai/deployments/text-embedding-3-large/embeddings?api-version=2023-05-15"
+    api_key="",  
+    api_version="",
+    azure_endpoint=""
 )
 
 # llm = AzureOpenAI(
-#     azure_endpoint="https://unadalabsai.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview", 
-#     api_key="a6203e4a768b40b5acfc41b01f71a2a0",  
-#     api_version="2024-07-01-preview"
+#     azure_endpoint="", 
+#     api_key="",  
+#     api_version=""
 # )
 
-llm = OpenAI(api_key="sk-5bb4a39a57954879b760ff1724a37b44", base_url="https://api.deepseek.com")
+llm = OpenAI(api_key="", base_url="")
 
 def get_project_base_directory():
     return os.getcwd()

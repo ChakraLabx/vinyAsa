@@ -104,7 +104,7 @@ class CacheEmbedding:
         else:  
             return self._spacy_handler.get_sparse_vector(text)
 
-    def inf_obj(self):
+    def inf_obj(self, create_table: bool = True):
         tbl_name = self._inf_db_name+'_tbl'
         id_idx = self._inf_db_name+'_id_idx'
         vec_idx = self._inf_db_name+'_vec_idx'
@@ -122,7 +122,8 @@ class CacheEmbedding:
             "sparse": {"type": "sparse,3072,float,int"}
         }
         
-        db_object.drop_table(tbl_name, conflict_type = ConflictType.Ignore)
+
+        db_object.drop_table(tbl_name, conflict_type = ConflictType.Ignore) if create_table else db_object
         table_object = db_object.create_table(tbl_name, columns_definition, conflict_type=ConflictType.Ignore)
         table_object.create_index(id_idx, IndexInfo("text", IndexType.FullText), conflict_type=ConflictType.Ignore)
         table_object.create_index(vec_idx, IndexInfo("vec", IndexType.Hnsw, {"metric": "cosine"}), conflict_type=ConflictType.Ignore)
@@ -191,48 +192,48 @@ class CacheEmbedding:
         
         return sparse_vec, embedding_results
 
-# Example usage
-def store_infinity_vec(texts, db_name):
-    embedding_instance = embedding
-    infinity_object = infinity_embedded.connect("/var/infinity")
-    
-    # Create cache embedding instance
-    cache_embedding = CacheEmbedding(
-        inf_db_name=db_name,
-        sparse_method="bm25",
-        embedding_instance=embedding_instance,
-        infinity_object=infinity_object
-    )
-
-    return cache_embedding.embed_documents(db_name, texts)
-     
-def get_infinity_vec(query, db_name, n):
-    # query = "What is machine learning?"
-    embedding_instance = embedding
-    infinity_object = infinity_embedded.connect("/var/infinity")
-    
-    # Create cache embedding instance
-    cache_embedding = CacheEmbedding(
-        inf_db_name=db_name,
-        sparse_method="bm25",
-        embedding_instance=embedding_instance,
-        infinity_object=infinity_object
-    )
-    sparse, dense = cache_embedding.embed_query(db_name, query)
-    tb_obj = cache_embedding.inf_obj()
-    
-    op = tb_obj.output(["id", "text", "vec", "sparse", "_score"]) \
-            .match_dense("vec", dense, "float", "cosine", n) \
-            .match_sparse("sparse", sparse, "ip", n) \
-            .match_text("text", query, 10) \
-            .fusion("weighted_sum", n, {"weights": "2,1,0.5"}) \
-            .to_pl()
-    return op[0]
-
 class QueryPraśna:
     def __init__(self, layout_data):
         self.layout_data = layout_data
         self.chat_history = []
+
+    # Example usage
+    def store_infinity_vec(self, texts, db_name):
+        embedding_instance = embedding
+        infinity_object = infinity_embedded.connect("/var/infinity")
+        
+        # Create cache embedding instance
+        cache_embedding = CacheEmbedding(
+            inf_db_name=db_name,
+            sparse_method="bm25",
+            embedding_instance=embedding_instance,
+            infinity_object=infinity_object
+        )
+
+        return cache_embedding.embed_documents(db_name, texts)
+        
+    def get_infinity_vec(self, query, db_name, n):
+        # query = "What is machine learning?"
+        embedding_instance = embedding
+        infinity_object = infinity_embedded.connect("/var/infinity")
+        
+        # Create cache embedding instance
+        cache_embedding = CacheEmbedding(
+            inf_db_name=db_name,
+            sparse_method="bm25",
+            embedding_instance=embedding_instance,
+            infinity_object=infinity_object
+        )
+        sparse, dense = cache_embedding.embed_query(db_name, query)
+        tb_obj = cache_embedding.inf_obj(create_table=False)
+        
+        op = tb_obj.output(["id", "text", "vec", "sparse", "_score"]) \
+                .match_dense("vec", dense, "float", "cosine", n) \
+                .match_sparse("sparse", sparse, "ip", n) \
+                .match_text("text", query, 10) \
+                .fusion("weighted_sum", n, {"weights": "2,1,0.5"}) \
+                .to_pl()
+        return op[0]
 
     def process_document_json(self, layout_data):
         chunks = []
@@ -300,8 +301,8 @@ class QueryPraśna:
         chunks = self.process_document_json(self.layout_data)
         
         for chunk in chunks:
-            store_infinity_vec([chunk], 'prasna')
+            self.store_infinity_vec([chunk], 'prasna')
         
-        pl_data = get_infinity_vec(query, 'prasna', 3)
+        pl_data = self.get_infinity_vec(query, 'prasna', 3)
         context = "\n\n".join(pl_data['text'].to_list())
         return self._get_insights_llm(query, context)

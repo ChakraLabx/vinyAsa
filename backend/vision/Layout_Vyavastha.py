@@ -9,7 +9,7 @@ from copy import deepcopy
 from vision.seeit import draw_box
 from vision.in_out import init_in_out
 from vision.file_utils import get_project_base_directory
-from vision.lipi import OCRLipi
+from vision.OCR_Lipi import OCRLipi
 from vision.layout_recognizer import LayoutRecognizer
 
 

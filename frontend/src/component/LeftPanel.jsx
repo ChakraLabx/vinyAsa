@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import DocumentView from './DocumentView';
 import DocumentControls from './DocumentControls';
-import Box from '@mui/material/Box'; // Assuming you're using Material-UI
+import Box from '@mui/material/Box'; 
 
         
 function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChange, currentPage, onPageChange, highlightedText, activeTab, setHighlightedText}) {
@@ -27,14 +27,14 @@ function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChang
   const [newFileUploaded, setNewFileUploaded] = useState(false);
 
   const sampleDocuments = {
-    'Receipts': { url: 'data/pdfs/ASAD013-LOAD.pdf', type: 'pdf' },
-    'Form': { url: 'data/chitra/09-7012530-003.jpg', type: 'image' },
-    'Security and Exchange Commission Filing': { url: 'data/pdfs/10-Q-Q3-2024-As-Filed.pdf', type: 'pdf' },
-    'Filing': { url: 'data/pdfs/10-Q-Q3-2024-As-Filed.pdf', type: 'pdf' },
-    'Vaccination Card': { url: 'data/pdfs/certificate.pdf', type: 'pdf' }
+    'Receipts': { url: 'data/ASAD013-LOAD.pdf', type: 'pdf', name: 'ASAD013-LOAD.pdf' },
+    'Form': { url: 'data/12572049.pdf', type: 'pdf', name: '12572049.pdf' },
+    'Security and Exchange Commission Filing': { url: 'data/10-Q-Q3-2024-As-Filed.pdf', type: 'pdf', name: '10-Q-Q3-2024-As-Filed.pdf' },
+    'Filing': { url: 'data/CKYC form.pdf', type: 'pdf', name: 'CKYC form.pdf' },
+    'Vaccination Card': { url: 'data/certificate.pdf', type: 'pdf', name: 'certificate.pdf' },
   };
-
-  const handleFileInputChange = (event) => {
+  
+  const handleFileInputChange = useCallback((event) => {
     const file = event.target.files[0];
     if (file) {
       const url = URL.createObjectURL(file);
@@ -45,17 +45,44 @@ function LeftPanel({ setSelectedFile, labeledImages, processing, handleFileChang
       handleFileChange(file);
       setNewFileUploaded(true);
     }
-  };
+  }, [handleFileChange, resetZoomFunction]);
 
-  const handleDocumentChange = (event) => {
+  const handleDocumentChange = async (event) => {
     const selectedDoc = event.target.value;
     setDocumentName(selectedDoc);
-    setSelectedFile(null);
-    setFileUrl(sampleDocuments[selectedDoc].url);
-    setFileType(sampleDocuments[selectedDoc].type);
+    
+    // Get the document info from sampleDocuments
+    const doc = sampleDocuments[selectedDoc];
+    setFileUrl(doc.url);
+    setFileType(doc.type);
     resetZoomFunction();
     setNewFileUploaded(true);
+  
+    try {
+      const response = await fetch(doc.url);
+      const blob = await response.blob();
+      const filename = doc.name || doc.url;
+      const ext = filename.split('.').pop().toLowerCase();
+      let mimeType;
+      if (ext === 'pdf') {
+        mimeType = 'application/pdf';
+      } else if (ext === 'png') {
+        mimeType = 'image/png';
+      } else if (ext === 'jpg' || ext === 'jpeg') {
+        mimeType = 'image/jpeg';
+      } else {
+        mimeType = blob.type;
+      }
+      
+      const file = new File([blob], filename, { type: mimeType });
+ 
+      setSelectedFile(file);
+      handleFileChange(file);
+    } catch (error) {
+      console.error("Error fetching sample document:", error);
+    }
   };
+  
 
   const resetZoom = useCallback((resetFunction) => {
     setResetZoomFunction(() => resetFunction);

@@ -33,6 +33,10 @@ const DocumentView = ({
       mb: 2
     },
     documentName: {
+      maxWidth: '10%',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',  
       fontWeight: 'bold'
     },
     pagination: {
@@ -52,7 +56,7 @@ const DocumentView = ({
       color: 'black'
     },
     documentContainer: {
-      height: '60vh',
+      height: '70vh',
       overflow: 'auto',
       border: '1px solid #ccc'
     },

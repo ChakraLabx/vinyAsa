@@ -1,11 +1,9 @@
 import * as React from 'react';
 import { styled } from '@mui/material/styles';
 import Switch from '@mui/material/Switch';
-import { useState } from 'react';
 
-export default function ModelToggle({ onModelChange, activeTab, modelConfigByTab}) {
+export default function ModelToggle({ onModelChange, activeTab, modelConfigByTab, mode, setMode}) {
   const currentModes = modelConfigByTab[activeTab] || [{ num: 0, value: "RAGFLOW" }];
-  const [mode, setMode] = useState(currentModes[0]);
 
   const handleModelChange = () => {
     const currentIndex = currentModes.findIndex(m => m.value === mode.value);
