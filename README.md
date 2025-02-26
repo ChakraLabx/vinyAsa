@@ -1,6 +1,7 @@
 # vinyAsa: Open-Source Document AI Platform
 
 Welcome to **vinyAsa**, an open-source Document AI solution developed by [ChakraLabx](https://github.com/ChakraLabx). This platform is designed to make text extraction, analysis, and interaction with scanned documents, PDFs, and images more efficient. By leveraging multiple OCR and layout analysis models, Vinyāsa provides a versatile environment for users who need to process various types of documents—from medical forms and invoices to legal contracts.
+
 [![Watch the video](https://img.youtube.com/vi/gLFQBTxSijk/0.jpg)](https://youtu.be/gLFQBTxSijk)
 
 ---
