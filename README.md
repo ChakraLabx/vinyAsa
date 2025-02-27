@@ -153,8 +153,8 @@ We extend our gratitude to the **developers and communities** behind the followi
 - **EasyOCR**: [GitHub](https://github.com/JaidedAI/EasyOCR)  
 - **RapidOCR**: [GitHub](https://github.com/RapidAI/RapidOCR)  
 - **MMOCR**: [GitHub](https://github.com/open-mmlab/mmocr)  
-- **Surya**: Specialized OCR model (check project docs)  
-- **Ragflow**: ChakraLabx’s in-house OCR and layout analysis solution  
+- **Surya**: [GitHub](https://github.com/VikParuchuri/surya)  
+- **Ragflow**: [GitHub](https://github.com/infiniflow/ragflow)  
 - **Viny**: ChakraLabx’s model for forms and layout analysis  
 
 ---
