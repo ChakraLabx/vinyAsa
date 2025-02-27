@@ -164,7 +164,7 @@ We extend our gratitude to the **developers and communities** behind the followi
 If you find **Vinyāsa** helpful in your research or commercial project, please consider citing our work:
 
 ```
-@misc{vinyAsa2023,
+@misc{vinyAsa2025,
   author = {ChakraLabx},
   title = {Vinyāsa: Open-Source Document AI Platform},
   year = {2025},
