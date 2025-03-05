@@ -81,7 +81,7 @@ vinyAsa/
    source venv/bin/activate   # On Windows: venv\Scripts\activate
    pip install -r requirements.txt
    ```
-4. Download models from given drive link [deeplekh](https://drive.google.com/drive/folders/1QWkjEhAaOlizFYEqguEfz905Ei647jiV?usp=drive_link)
+4. Download models from given drive link [deeplekh](https://drive.google.com/drive/folders/1TI7lE410Xsn0gPuBOBTOMxcJU7A_jb7r?usp=sharing)
 5. deeplekh folder consist models and for setup follow directory structure
 
 ### Running the Project
